@@ -8,51 +8,47 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+
 import androidx.annotation.NonNull;
-import androidx.databinding.DataBindingUtil;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
-import com.bumptech.glide.load.engine.DiskCacheStrategy;
-import com.bumptech.glide.request.RequestListener;
-import com.bumptech.glide.request.target.Target;
-import com.example.recycleviewmultipleviews.BR;
 import com.example.recycleviewmultipleviews.R;
-
-import com.example.recycleviewmultipleviews.databinding.RowMovieListBinding;
 import com.example.tmdb.model.TmdbMovie;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class MovieListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
+/**
+ * Created by Suleiman on 19/10/16.
+ */
 
-    private Context context;
-    private List<TmdbMovie> dataModelArrayList;
+public class PaginationAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
+
     private static final int ITEM = 0;
     private static final int LOADING = 1;
     private static final String BASE_URL_IMG = "https://image.tmdb.org/t/p/w500";
+
+    private List<TmdbMovie> movieResults;
+    private Context context;
+
     private boolean isLoadingAdded = false;
 
-    // Constructor
-    public MovieListAdapter(Context context, List<TmdbMovie> dataModelArrayList) {
+    public PaginationAdapter(Context context) {
         this.context = context;
-        this.dataModelArrayList = dataModelArrayList;
+        movieResults = new ArrayList<>();
     }
 
-    public MovieListAdapter(Context context) {
-        this.context = context;
-        this.dataModelArrayList = new ArrayList<>();
+    public List<TmdbMovie> getMovies() {
+        return movieResults;
     }
 
-    @NonNull
+    public void setMovies(List<TmdbMovie> movieResults) {
+        this.movieResults = movieResults;
+    }
+
     @Override
-    public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        // to inflate the layout for each item of recycler view.
-        //View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.card_layout, parent, false);
-        //RowMovieListBinding view = DataBindingUtil.inflate(LayoutInflater.from(parent.getContext()), R.layout.row_movie_list, parent, false);
-        //return new RecyclerView.ViewHolder(view);
-
+    public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         RecyclerView.ViewHolder viewHolder = null;
         LayoutInflater inflater = LayoutInflater.from(parent.getContext());
 
@@ -77,24 +73,18 @@ public class MovieListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
     }
 
     @Override
-    public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
-        // to set data to textview and imageview of each card layout
-        TmdbMovie result = dataModelArrayList.get(position);
-        //holder.bind(result);
+    public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
+
+        TmdbMovie result = movieResults.get(position); // Movie
 
         switch (getItemViewType(position)) {
             case ITEM:
-                final MovieVH movieVHholder = (MovieVH) holder;
+                final MovieVH movieVH = (MovieVH) holder;
 
-                /**
-                 * Using Glide to handle image loading.
-                 * Learn more about Glide here:
-                 * <a href="http://blog.grafixartist.com/image-gallery-app-android-studio-1-4-glide/" />
-                 */
                 Glide
                         .with(context)
                         .load(BASE_URL_IMG + result.getPoster_path())
-                        .into(movieVHholder.mPosterImg);
+                        .into(movieVH.mPosterImg);
 
                 break;
 
@@ -102,11 +92,6 @@ public class MovieListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
 //                Do nothing
                 break;
         }
-
-        /*
-        String image = "";
-        image = BASE_URL_IMG + model.getPoster_path();
-        Glide.with(context).load(image).into(holder.movieBinding.poster);*/
 
         holder.itemView.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -119,40 +104,28 @@ public class MovieListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
                 //context.startActivity(new Intent(view.getContext(), MovieDetailsActivity.class));
             }
         });
+
     }
 
     @Override
     public int getItemCount() {
-        // this method is used for showing number
-        // of card items in recycler view.
-        return dataModelArrayList.size();
+        return movieResults == null ? 0 : movieResults.size();
     }
 
-    // View holder class for initializing of
-    // your views such as TextView and Imageview.
-    public class Viewholder extends RecyclerView.ViewHolder {
-        RowMovieListBinding movieBinding;
-
-        public Viewholder(@NonNull RowMovieListBinding itemView) {
-            super(itemView.getRoot());
-            this.movieBinding = itemView;
-
-        }
-
-        public void bind(Object obj) {
-            movieBinding.setVariable(BR.model, obj);
-            movieBinding.executePendingBindings();
-        }
+    @Override
+    public int getItemViewType(int position) {
+        return (position == movieResults.size() - 1 && isLoadingAdded) ? LOADING : ITEM;
     }
 
-    public void addLoadingFooter() {
-        isLoadingAdded = true;
-        add(new TmdbMovie());
-    }
+
+    /*
+   Helpers
+   _________________________________________________________________________________________________
+    */
 
     public void add(TmdbMovie r) {
-        dataModelArrayList.add(r);
-        notifyItemInserted(dataModelArrayList.size() - 1);
+        movieResults.add(r);
+        notifyItemInserted(movieResults.size() - 1);
     }
 
     public void addAll(List<TmdbMovie> moveResults) {
@@ -161,21 +134,52 @@ public class MovieListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
         }
     }
 
+    public void remove(TmdbMovie r) {
+        int position = movieResults.indexOf(r);
+        if (position > -1) {
+            movieResults.remove(position);
+            notifyItemRemoved(position);
+        }
+    }
+
+    public void clear() {
+        isLoadingAdded = false;
+        while (getItemCount() > 0) {
+            remove(getItem(0));
+        }
+    }
+
+    public boolean isEmpty() {
+        return getItemCount() == 0;
+    }
+
+
+    public void addLoadingFooter() {
+        isLoadingAdded = true;
+        add(new TmdbMovie());
+    }
+
     public void removeLoadingFooter() {
         isLoadingAdded = false;
 
-        int position = dataModelArrayList.size() - 1;
+        int position = movieResults.size() - 1;
         TmdbMovie result = getItem(position);
 
         if (result != null) {
-            dataModelArrayList.remove(position);
+            movieResults.remove(position);
             notifyItemRemoved(position);
         }
     }
 
     public TmdbMovie getItem(int position) {
-        return dataModelArrayList.get(position);
+        return movieResults.get(position);
     }
+
+
+   /*
+   View Holders
+   _________________________________________________________________________________________________
+    */
 
     /**
      * Main list's content ViewHolder
@@ -188,7 +192,6 @@ public class MovieListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
             super(itemView);
 
             mPosterImg = (ImageView) itemView.findViewById(R.id.poster);
-
             mProgress = (ProgressBar) itemView.findViewById(R.id.movie_progress);
         }
     }
@@ -200,4 +203,6 @@ public class MovieListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
             super(itemView);
         }
     }
+
+
 }

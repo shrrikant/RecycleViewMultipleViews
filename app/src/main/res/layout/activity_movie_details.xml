@@ -7,7 +7,7 @@
     <data>
         <variable
             name="myAdapter"
-            type="com.example.tmdb.PaginationAdapter" />
+            type="com.example.tmdb.MovieListAdapter" />
     </data>
 
     <androidx.constraintlayout.widget.ConstraintLayout
@@ -24,15 +24,6 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
             android:adapter="@{myAdapter}"/>
-
-        <ProgressBar
-            android:id="@+id/main_progress"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/movie_recycler_view"/>
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 </layout>

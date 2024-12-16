@@ -18,6 +18,14 @@
         app:cardUseCompatPadding="true"
         >
 
+        <ProgressBar
+            android:id="@+id/movie_progress"
+            style="@style/Widget.AppCompat.ProgressBar"
+            android:layout_width="@dimen/activity_margin"
+            android:layout_height="@dimen/activity_margin"
+            android:layout_gravity="center"
+            android:theme="@style/CircularProgress"/>
+
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
@@ -28,8 +36,6 @@
                 android:layout_width="200dp"
                 android:layout_height="300dp"
                 android:scaleType="fitXY"
-
-                android:src="@{model.poster_path}"
 
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
